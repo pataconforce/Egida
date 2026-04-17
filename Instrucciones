@@ -1,0 +1,18 @@
+Instrucciones
+
+#ubicación de la carpeta del proyecto
+cd Desktop\pose-webcam 
+
+#este paso es necesario para hacer un bypass a las protecciones de ejecución en powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass 
+
+#activamos el entorno virtual donde está corriendo python 11 compatible con los webhooks para el chatbot.
+.venv\Scripts\activate 
+
+#esta es la última versión.
+python webcam_pose3.py 
+
+#Nuestras API Keys para los webhooks del chatbot son confidenciales y son omitidas del código publicado.
+#El código está atado al hardware de webcam integrada en mi laptop de trabajo, al implementar debe hacer un rtsp call en la red local para obtener el stream de video desde la ip cam deseada.
+#El código utiliza yolo11 versión nano, ultraligero y nuestro código corre los procesos en 3 hilos separados, reduce resolución y fps, óptimo para recursos EDGE de 4 núcleos.
+#Al implementar en un SBC EDGE, se recomienda trabajar con UBUNTU / JETPACK, para lo cual cambiaría la dependencia de los webhooks del chatbot y por lo tanto la versión de python.
