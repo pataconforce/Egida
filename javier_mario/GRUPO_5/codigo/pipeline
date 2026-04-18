@@ -1,0 +1,112 @@
+```markdown
+# Sistema de Seguridad con Visión por Computadora y Telegram
+
+## Descripción
+Sistema de vigilancia inteligente que utiliza YOLO para detectar:
+- **Modo Abierto**: Gesto de manos arriba (emergencia)
+- **Modo Cerrado**: Presencia de personas no autorizadas
+
+Envía notificaciones con fotos vía Telegram y activa alarmas de audio.
+
+## Pipeline
+
+```
+Cámara → YOLO Pose/Detect → Modo seleccionado → Conteo 3s → Audio de advertencia → Conteo 3s → Alarma
+                                                                                        ↓
+Telegram ← Notificaciones con foto ← Bot (comandos: /abrir, /cerrar, /foto, /estado)
+```
+
+## Requisitos
+
+```bash
+Python 3.11
+pip install ultralytics opencv-python pygame python-telegram-bot==13.7
+```
+
+## Archivos necesarios
+
+```
+pose-webcam/
+├── webcam_pose.py          # Programa principal
+├── handsup1.wav            # "¿Está todo bien?"
+├── handsup2.wav            # Alarma de emergencia
+└── handsup3.wav            # "Local cerrado, persona detectada"
+```
+
+## Configuración Chatbot
+
+Editar en el código:
+```python
+APIKEY1 = "CONFIDENCIAL"
+APIKEY2 = "COINFIDENCIAL"
+```
+
+## Ejecución
+
+```bash
+cd Desktop\pose-webcam
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.venv\Scripts\activate
+python webcam_pose.py
+```
+
+## Comandos Chatbot
+
+| Comando | Función |
+|---------|---------|
+| `/start` | Mostrar menú con botones |
+| `/abrir` | Cambiar a modo abierto (manos arriba) |
+| `/cerrar` | Cambiar a modo cerrado (intrusos) |
+| `/foto` | Capturar y enviar foto |
+| `/estado` | Ver estado del sistema |
+
+## Estados del sistema
+
+| Estado | Descripción |
+|--------|-------------|
+| `idle` | Sistema listo |
+| `contando1` | Esperando 3s para audio de verificación |
+| `esperando_fin_audio1` | Reproduciendo mensaje |
+| `contando2` | Esperando 3s para alarma |
+| `alarma` | Alarma activa |
+| `contando_persona` | Intruso detectado, esperando 3s |
+
+## Lógica por modo
+
+### Modo Abierto (Local Abierto)
+```
+Manos arriba → 3s → Audio1 → 3s → Audio2
+```
+- Si baja las manos → **Cancela todo**
+
+### Modo Cerrado (Local Cerrado)
+```
+Persona detectada → 3s → Audio3 → 3s → Audio2
+```
+- Si no hay persona → **Sistema idle**
+
+## Salir del programa
+- Presionar `q` en la ventana de video
+- O cerrar la terminal
+
+## Estructura del código
+
+```python
+class SistemaSeguridad:
+    - __init__()         # Inicializa cámara, modelo, audios
+    - detectar_manos_arriba()  # YOLO pose
+    - detectar_personas()      # YOLO detect
+    - ejecutar_modo_abierto()  # Lógica manos arriba
+    - ejecutar_modo_cerrado()  # Lógica intrusos
+    - enviar_notificacion()    # Telegram
+    - cmd_abrir/cerrar/foto/estado  # Comandos bot
+    - loop_video()         # Hilo de procesamiento
+    - ejecutar()           # Main (bot en hilo principal)
+```
+
+## Notas
+- Usa `threading` para que el bot y el video corran en paralelo
+- El bot usa `python-telegram-bot==13.7` (síncrono, sin async/await)
+- Las notificaciones incluyen foto del momento del evento
+- Los botones inline permiten control rápido desde Telegram
+```
